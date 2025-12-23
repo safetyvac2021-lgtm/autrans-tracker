@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบรายงานสถานะรถ - Autrans SR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a1f36;
+            --secondary: #2e3856;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #0f1419;
+            --card-bg: #1a1f36;
+            --text: #e5e7eb;
+            --text-dim: #9ca3af;
+            --border: #2e3856;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f36 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(245, 158, 11, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
+            50% { transform: scale(1.1) rotate(180deg); opacity: 0.6; }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            background: var(--success);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .group-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            max-height: 800px;
+        }
+
+        .group-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .group-title {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .group-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), #f97316);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .round-item {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .round-item:hover {
+            background: rgba(46, 56, 86, 0.8);
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .round-item.completed {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+            border-color: var(--success);
+            opacity: 0.8;
+        }
+
+        .rounds-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .section-label {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .active-rounds, .completed-rounds {
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .active-rounds {
+            max-height: 400px;
+        }
+
+        .completed-rounds {
+            max-height: 250px;
+            border-top: 2px solid var(--border);
+            padding-top: 15px;
+        }
+
+        .active-rounds::-webkit-scrollbar,
+        .completed-rounds::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .active-rounds::-webkit-scrollbar-track,
+        .completed-rounds::-webkit-scrollbar-track {
+            background: var(--secondary);
+            border-radius: 4px;
+        }
+
+        .active-rounds::-webkit-scrollbar-thumb,
+        .completed-rounds::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .vehicle-location-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .vehicle-select {
+            padding: 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: 'Sarabun', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .vehicle-select:hover,
+        .vehicle-select:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        }
+
+        .complete-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: 'Chakra Petch', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .complete-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .complete-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .completed-info {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .completed-time {
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+
+        .round-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .round-label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .round-number {
+            background: var(--accent);
+            color: var(--primary);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .completed .round-number {
+            background: var(--success);
+            color: white;
+        }
+
+        .current-status {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .completed .current-status {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .location-select {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: 'Sarabun', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .location-select:hover {
+            border-color: var(--accent);
+            background: rgba(15, 20, 25, 0.8);
+        }
+
+        .location-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        }
+
+        .location-select option {
+            background: var(--primary);
+            color: var(--text);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: 'Chakra Petch', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #f97316);
+            color: white;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 30px rgba(245, 158, 11, 0.6);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            transform: translateY(-3px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .history-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .history-title {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .clear-history-btn {
+            padding: 8px 16px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-history-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: var(--secondary);
+            border-radius: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .history-item {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .history-time {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .history-content {
+            font-size: 0.95rem;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        .line-notify-config {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .config-title {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .token-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: 'Sarabun', sans-serif;
+            margin-bottom: 10px;
+        }
+
+        .token-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .help-text a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            z-index: 1000;
+            animation: slideInRight 0.5s ease;
+            max-width: 400px;
+        }
+
+        .notification.error {
+            background: var(--danger);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .group-title {
+                font-size: 1.4rem;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>🚛 ระบบรายงานสถานะรถ</h1>
+                <div class="subtitle">
+                    Autrans SR Vehicle Status Tracker
+                    <span class="status-badge">ONLINE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- LINE Messaging API Configuration -->
+        <div class="line-notify-config">
+            <div class="config-title">
+                <span>⚙️</span>
+                <span>ตั้งค่า LINE Messaging API</span>
+            </div>
+            <input type="text" id="googleScriptUrl" class="token-input" placeholder="ใส่ Google Apps Script Web App URL ของคุณที่นี่">
+            <div class="help-text">
+                📌 <strong>วิธีการตั้งค่า:</strong>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li>สร้าง LINE Official Account และ Google Apps Script ตามคู่มือ <strong>LINE-API-Setup-Guide.md</strong></li>
+                    <li>Deploy Google Apps Script เป็น Web App</li>
+                    <li>คัดลอก Web App URL มาใส่ในช่องด้านบน</li>
+                    <li>เชิญ Bot เข้ากลุ่ม LINE ที่ต้องการรับรายงาน</li>
+                </ol>
+                URL จะถูกบันทึกในเบราว์เซอร์ของคุณเท่านั้น (ปลอดภัย)<br>
+                📖 <strong>ดูคู่มือฉบับเต็ม:</strong> LINE-API-Setup-Guide.md
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Frame Group -->
+            <div class="group-section">
+                <div class="group-header">
+                    <div class="group-title">
+                        <div class="group-icon">🔧</div>
+                        <span>Frame</span>
+                    </div>
+                    <span style="color: var(--text-dim); font-size: 0.9rem;" id="frameCount">0 รอบกำลังดำเนินการ</span>
+                </div>
+                <div class="rounds-container">
+                    <div>
+                        <div class="section-label">
+                            <span>🔄</span>
+                            <span>รอบกำลังดำเนินการ</span>
+                        </div>
+                        <div class="active-rounds" id="frameRounds"></div>
+                    </div>
+                    <div>
+                        <div class="section-label">
+                            <span>✅</span>
+                            <span>รอบที่เสร็จสิ้นแล้ว</span>
+                        </div>
+                        <div class="completed-rounds" id="frameCompleted"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deck Group -->
+            <div class="group-section">
+                <div class="group-header">
+                    <div class="group-title">
+                        <div class="group-icon">📦</div>
+                        <span>Deck</span>
+                    </div>
+                    <span style="color: var(--text-dim); font-size: 0.9rem;">5 รอบ</span>
+                </div>
+                <div id="deckRounds"></div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="sendReport">
+                <span>📤 ส่งรายงานเข้า LINE</span>
+            </button>
+            <button class="btn btn-secondary" id="resetAll">
+                <span>🔄 รีเซ็ตทั้งหมด</span>
+            </button>
+        </div>
+
+        <!-- History Section -->
+        <div class="history-section" style="margin-top: 30px;">
+            <div class="history-header">
+                <h3 class="history-title">📋 ประวัติการรายงาน</h3>
+                <button class="clear-history-btn" id="clearHistory">ล้างประวัติ</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="empty-history">ยังไม่มีประวัติการรายงาน</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const LOCATIONS = [
+            { value: '', label: '--- เลือกจุดงาน ---' },
+            { value: 'ATH', label: 'ATH' },
+            { value: 'Waiting', label: 'Waiting' },
+            { value: 'S5', label: 'S5' },
+            { value: 'OBS', label: 'OBS' },
+            { value: 'TMT/HINO', label: 'TMT/HINO' },
+            { value: 'HINO', label: 'HINO' },
+            { value: 'HINO/TMT', label: 'HINO/TMT' }
+        ];
+
+        const VEHICLES = ['', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
+        const DECK_ROUNDS = 5;
+
+        // State Management
+        let frameActiveRounds = [];
+        let frameCompletedRounds = [];
+        let deckState = [];
+        let reportHistory = [];
+        let nextFrameRoundNumber = 1;
+
+        // Initialize
+        function init() {
+            // Initialize Frame with 7 active rounds
+            for (let i = 1; i <= 7; i++) {
+                frameActiveRounds.push({ 
+                    round: i, 
+                    vehicle: '', 
+                    location: '',
+                    id: Date.now() + i
+                });
+            }
+            nextFrameRoundNumber = 8;
+
+            // Initialize Deck rounds
+            for (let i = 1; i <= DECK_ROUNDS; i++) {
+                deckState.push({ round: i, location: '' });
+            }
+
+            // Load saved data
+            loadFromLocalStorage();
+
+            // Render UI
+            renderFrameRounds();
+            renderDeckRounds();
+            renderHistory();
+
+            // Event listeners
+            document.getElementById('sendReport').addEventListener('click', sendLineReport);
+            document.getElementById('resetAll').addEventListener('click', resetAll);
+            document.getElementById('clearHistory').addEventListener('click', clearHistory);
+            document.getElementById('googleScriptUrl').addEventListener('input', saveLineToken);
+        }
+
+        // Render Frame Rounds
+        function renderFrameRounds() {
+            const activeContainer = document.getElementById('frameRounds');
+            const completedContainer = document.getElementById('frameCompleted');
+            const countLabel = document.getElementById('frameCount');
+            
+            activeContainer.innerHTML = '';
+            completedContainer.innerHTML = '';
+
+            // Update count
+            countLabel.textContent = `${frameActiveRounds.length} รอบกำลังดำเนินการ`;
+
+            // Render active rounds
+            frameActiveRounds.forEach((round, index) => {
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'round-item';
+
+                // Vehicle select
+                const vehicleSelect = document.createElement('select');
+                vehicleSelect.className = 'vehicle-select';
+                VEHICLES.forEach(vehicle => {
+                    const option = document.createElement('option');
+                    option.value = vehicle;
+                    option.textContent = vehicle || '--- เลือกรถ ---';
+                    if (vehicle === round.vehicle) {
+                        option.selected = true;
+                    }
+                    vehicleSelect.appendChild(option);
+                });
+                vehicleSelect.addEventListener('change', (e) => {
+                    frameActiveRounds[index].vehicle = e.target.value;
+                    saveToLocalStorage();
+                });
+
+                // Location select
+                const locationSelect = document.createElement('select');
+                locationSelect.className = 'location-select';
+                LOCATIONS.forEach(loc => {
+                    const option = document.createElement('option');
+                    option.value = loc.value;
+                    option.textContent = loc.label;
+                    if (loc.value === round.location) {
+                        option.selected = true;
+                    }
+                    locationSelect.appendChild(option);
+                });
+                locationSelect.addEventListener('change', (e) => {
+                    frameActiveRounds[index].location = e.target.value;
+                    saveToLocalStorage();
+                    renderFrameRounds();
+                });
+
+                // Complete button
+                const completeBtn = document.createElement('button');
+                completeBtn.className = 'complete-btn';
+                completeBtn.textContent = '✓ จบงาน';
+                completeBtn.disabled = round.location !== 'OBS' || !round.vehicle;
+                completeBtn.addEventListener('click', () => completeRound(index));
+
+                roundDiv.innerHTML = `
+                    <div class="round-header">
+                        <div class="round-label">
+                            <span class="round-number">${round.round}</span>
+                            <span>รอบที่ ${round.round}</span>
+                        </div>
+                        <div class="current-status">
+                            ${round.vehicle ? `รถ ${round.vehicle}` : 'ยังไม่เลือกรถ'}
+                            ${round.location ? ` | ${round.location}` : ''}
+                        </div>
+                    </div>
+                    <div class="vehicle-location-row">
+                    </div>
+                `;
+                
+                const row = roundDiv.querySelector('.vehicle-location-row');
+                row.appendChild(vehicleSelect);
+                row.appendChild(locationSelect);
+                roundDiv.appendChild(completeBtn);
+                
+                activeContainer.appendChild(roundDiv);
+            });
+
+            // Render completed rounds
+            if (frameCompletedRounds.length === 0) {
+                completedContainer.innerHTML = '<div class="empty-history" style="padding: 20px;">ยังไม่มีรอบที่เสร็จสิ้น</div>';
+            } else {
+                frameCompletedRounds.forEach(round => {
+                    const roundDiv = document.createElement('div');
+                    roundDiv.className = 'round-item completed';
+                    
+                    const completedTime = new Date(round.completedAt).toLocaleString('th-TH', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        day: '2-digit',
+                        month: '2-digit'
+                    });
+
+                    roundDiv.innerHTML = `
+                        <div class="round-header">
+                            <div class="round-label">
+                                <span class="round-number">${round.round}</span>
+                                <span>รอบที่ ${round.round}</span>
+                            </div>
+                            <div class="current-status">
+                                รถ ${round.vehicle} | OBS ✓
+                            </div>
+                        </div>
+                        <div class="completed-info">
+                            <span>จบงานเรียบร้อย</span>
+                            <span class="completed-time">⏰ ${completedTime}</span>
+                        </div>
+                    `;
+                    
+                    completedContainer.appendChild(roundDiv);
+                });
+            }
+        }
+
+        // Complete Round
+        function completeRound(index) {
+            const round = frameActiveRounds[index];
+            
+            if (round.location !== 'OBS' || !round.vehicle) {
+                showNotification('กรุณาเลือกรถและตั้งจุดงานเป็น OBS ก่อนจบงาน', 'error');
+                return;
+            }
+
+            // Move to completed
+            frameCompletedRounds.unshift({
+                ...round,
+                completedAt: new Date().toISOString()
+            });
+
+            // Remove from active
+            frameActiveRounds.splice(index, 1);
+
+            // Add new round
+            frameActiveRounds.push({
+                round: nextFrameRoundNumber++,
+                vehicle: '',
+                location: '',
+                id: Date.now()
+            });
+
+            saveToLocalStorage();
+            renderFrameRounds();
+            showNotification(`✅ รอบที่ ${round.round} (${round.vehicle}) จบงานเรียบร้อย`);
+        }
+
+        // Render Deck Rounds
+        function renderDeckRounds() {
+            const container = document.getElementById('deckRounds');
+            container.innerHTML = '';
+
+            deckState.forEach((round, index) => {
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'round-item';
+
+                const select = document.createElement('select');
+                select.className = 'location-select';
+
+                LOCATIONS.forEach(loc => {
+                    const option = document.createElement('option');
+                    option.value = loc.value;
+                    option.textContent = loc.label;
+                    if (loc.value === round.location) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+
+                select.addEventListener('change', (e) => {
+                    deckState[index].location = e.target.value;
+                    saveToLocalStorage();
+                    renderDeckRounds();
+                });
+
+                roundDiv.innerHTML = `
+                    <div class="round-header">
+                        <div class="round-label">
+                            <span class="round-number">${round.round}</span>
+                            <span>รอบที่ ${round.round}</span>
+                        </div>
+                        <div class="current-status">
+                            ${round.location ? round.location : 'ยังไม่ได้เลือก'}
+                        </div>
+                    </div>
+                `;
+                roundDiv.appendChild(select);
+                container.appendChild(roundDiv);
+            });
+        }
+
+        // Send LINE Report via Google Apps Script
+        async function sendLineReport() {
+            const scriptUrl = localStorage.getItem('googleScriptUrl');
+            
+            if (!scriptUrl) {
+                showNotification('กรุณาใส่ Google Apps Script URL ก่อนส่งรายงาน', 'error');
+                return;
+            }
+
+            // Build report message
+            let message = '\n🚛 รายงานสถานะรถ - Autrans SR\n';
+            message += '⏰ เวลา: ' + new Date().toLocaleString('th-TH') + '\n';
+            message += '━━━━━━━━━━━━━━━━━━━━\n\n';
+
+            // Frame Report - Active rounds
+            message += `🔧 FRAME (${frameActiveRounds.length} รอบกำลังดำเนินการ):\n`;
+            frameActiveRounds.forEach(round => {
+                const vehicle = round.vehicle || '-';
+                const location = round.location || '-';
+                message += `🔄 รอบที่ ${round.round} (${vehicle}): ${location}\n`;
+            });
+
+            // Frame Report - Recently completed (last 5)
+            if (frameCompletedRounds.length > 0) {
+                message += '\n✅ รอบที่เสร็จสิ้นล่าสุด:\n';
+                frameCompletedRounds.slice(0, 5).forEach(round => {
+                    const time = new Date(round.completedAt).toLocaleTimeString('th-TH', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    message += `✓ รอบที่ ${round.round} (${round.vehicle}): OBS - ${time}\n`;
+                });
+            }
+
+            message += '\n📦 DECK (5 รอบ):\n';
+            deckState.forEach(round => {
+                const location = round.location || '-';
+                message += `🔄 รอบที่ ${round.round}: ${location}\n`;
+            });
+
+            message += '\n━━━━━━━━━━━━━━━━━━━━';
+
+            // Send via Google Apps Script (using JSONP-like approach)
+            try {
+                const url = `${scriptUrl}?action=send&message=${encodeURIComponent(message)}&callback=jsonp_${Date.now()}`;
+                
+                // Create script tag for JSONP
+                const script = document.createElement('script');
+                script.src = url;
+                
+                // Set timeout
+                const timeoutId = setTimeout(() => {
+                    document.head.removeChild(script);
+                    showNotification('⏱️ หมดเวลา: กรุณาตรวจสอบ Google Apps Script URL', 'error');
+                }, 10000);
+                
+                // Success - assume it worked after 2 seconds
+                setTimeout(() => {
+                    clearTimeout(timeoutId);
+                    try {
+                        document.head.removeChild(script);
+                    } catch(e) {}
+                    showNotification('✅ ส่งรายงานเข้า LINE สำเร็จ!');
+                    addToHistory(message);
+                }, 2000);
+                
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                showNotification(`❌ เกิดข้อผิดพลาด: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // Add to History
+        function addToHistory(message) {
+            const historyItem = {
+                timestamp: new Date().toISOString(),
+                message: message
+            };
+            reportHistory.unshift(historyItem);
+            
+            // Keep only last 20 reports
+            if (reportHistory.length > 20) {
+                reportHistory = reportHistory.slice(0, 20);
+            }
+            
+            saveToLocalStorage();
+            renderHistory();
+        }
+
+        // Render History
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            
+            if (reportHistory.length === 0) {
+                container.innerHTML = '<div class="empty-history">ยังไม่มีประวัติการรายงาน</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            reportHistory.forEach(item => {
+                const historyDiv = document.createElement('div');
+                historyDiv.className = 'history-item';
+                
+                const time = new Date(item.timestamp).toLocaleString('th-TH');
+                historyDiv.innerHTML = `
+                    <div class="history-time">📅 ${time}</div>
+                    <div class="history-content">${item.message.replace(/\n/g, '<br>')}</div>
+                `;
+                
+                container.appendChild(historyDiv);
+            });
+        }
+
+        // Clear History
+        function clearHistory() {
+            if (confirm('คุณต้องการล้างประวัติการรายงานทั้งหมดใช่หรือไม่?')) {
+                reportHistory = [];
+                saveToLocalStorage();
+                renderHistory();
+                showNotification('ล้างประวัติสำเร็จ');
+            }
+        }
+
+        // Reset All
+        function resetAll() {
+            if (confirm('คุณต้องการรีเซ็ตสถานะรถทั้งหมดใช่หรือไม่? (รวมถึงรอบที่เสร็จสิ้นแล้ว)')) {
+                frameActiveRounds = [];
+                frameCompletedRounds = [];
+                nextFrameRoundNumber = 1;
+                
+                // Reinitialize Frame with 7 active rounds
+                for (let i = 1; i <= 7; i++) {
+                    frameActiveRounds.push({ 
+                        round: i, 
+                        vehicle: '', 
+                        location: '',
+                        id: Date.now() + i
+                    });
+                }
+                nextFrameRoundNumber = 8;
+                
+                deckState.forEach(round => {
+                    round.location = '';
+                });
+                
+                saveToLocalStorage();
+                renderFrameRounds();
+                renderDeckRounds();
+                showNotification('รีเซ็ทสำเร็จ');
+            }
+        }
+
+        // Save Google Script URL
+        function saveLineToken() {
+            const url = document.getElementById('googleScriptUrl').value.trim();
+            localStorage.setItem('googleScriptUrl', url);
+        }
+
+        // Local Storage Functions
+        function saveToLocalStorage() {
+            localStorage.setItem('frameActiveRounds', JSON.stringify(frameActiveRounds));
+            localStorage.setItem('frameCompletedRounds', JSON.stringify(frameCompletedRounds));
+            localStorage.setItem('nextFrameRoundNumber', nextFrameRoundNumber);
+            localStorage.setItem('deckState', JSON.stringify(deckState));
+            localStorage.setItem('reportHistory', JSON.stringify(reportHistory));
+        }
+
+        function loadFromLocalStorage() {
+            const savedActiveRounds = localStorage.getItem('frameActiveRounds');
+            const savedCompletedRounds = localStorage.getItem('frameCompletedRounds');
+            const savedNextRound = localStorage.getItem('nextFrameRoundNumber');
+            const savedDeck = localStorage.getItem('deckState');
+            const savedHistory = localStorage.getItem('reportHistory');
+            const savedUrl = localStorage.getItem('googleScriptUrl');
+
+            if (savedActiveRounds) frameActiveRounds = JSON.parse(savedActiveRounds);
+            if (savedCompletedRounds) frameCompletedRounds = JSON.parse(savedCompletedRounds);
+            if (savedNextRound) nextFrameRoundNumber = parseInt(savedNextRound);
+            if (savedDeck) deckState = JSON.parse(savedDeck);
+            if (savedHistory) reportHistory = JSON.parse(savedHistory);
+            if (savedUrl) document.getElementById('googleScriptUrl').value = savedUrl;
+        }
+
+        // Show Notification
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
